@@ -4,7 +4,7 @@
 	"version": "1.0.0",
 	"minAppVersion": "0.9.12",
 	"description": "A simple plugin which allows you to insert the current date and time, in a format of your choice, in the current location of the cursor in the editor.",
-	"author": "Nick Harvey",
+	"author": "github.com/NickHarvey2",
 	"authorUrl": "",
 	"isDesktopOnly": false
 }
