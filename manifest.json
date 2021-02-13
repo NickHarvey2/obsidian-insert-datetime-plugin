@@ -3,7 +3,7 @@
 	"name": "Insert Datetime",
 	"version": "1.0.0",
 	"minAppVersion": "0.9.12",
-	"description": "TODO",
+	"description": "A simple plugin which allows you to insert the current date and time, in a format of your choice, in the current location of the cursor in the editor.",
 	"author": "Nick Harvey",
 	"authorUrl": "",
 	"isDesktopOnly": false
