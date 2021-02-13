@@ -1,38 +1,38 @@
-import { App, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, MarkdownView } from 'obsidian';
 
-interface MyPluginSettings {
-	mySetting: string;
+interface InsertDatetimePluginSettings {
+	format: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+const DEFAULT_SETTINGS: InsertDatetimePluginSettings = {
+	format: 'YYYY-MM-dd HH:mm'
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class InsertDatetimePlugin extends Plugin {
+	settings: InsertDatetimePluginSettings;
 
 	async onload() {
-		console.log('loading plugin');
+		console.log('loading obsidian-insert-datetime-plugin');
 
 		await this.loadSettings();
-
-		this.addRibbonIcon('dice', 'Sample Plugin', () => {
-			new Notice('This is a notice!');
-		});
 
 		this.addStatusBarItem().setText('Status Bar Text');
 
 		this.addCommand({
-			id: 'open-sample-modal',
-			name: 'Open Sample Modal',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
+			id: 'insert-datetime',
+			name: 'Insert Datetime',
 			checkCallback: (checking: boolean) => {
-				let leaf = this.app.workspace.activeLeaf;
-				if (leaf) {
+				const view = this.app.workspace.activeLeaf.view as MarkdownView;
+				if (view.getMode() === 'source') {
 					if (!checking) {
-						new SampleModal(this.app).open();
+						const editor = view.sourceMode.cmEditor as CodeMirror.Editor;
+						const now = new Date();
+						editor.replaceSelection(this.settings.format.replace('YYYY', now.getFullYear().toString().padStart(4, '0'))
+																	.replace('MM', (now.getMonth() + 1).toString().padStart(2, '0'))
+																	.replace('dd', now.getDate().toString().padStart(2, '0'))
+																	.replace('HH', now.getHours().toString().padStart(2, '0'))
+																	.replace('mm', now.getMinutes().toString().padStart(2, '0'))
+																	.replace('ss', now.getSeconds().toString().padStart(2, '0')));
 					}
 					return true;
 				}
@@ -40,21 +40,11 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		this.registerCodeMirror((cm: CodeMirror.Editor) => {
-			console.log('codemirror', cm);
-		});
-
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
-
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		this.addSettingTab(new InsertDatetimePluginSettingTab(this.app, this));
 	}
 
 	onunload() {
-		console.log('unloading plugin');
+		console.log('unloading obsidian-insert-datetime-plugin');
 	}
 
 	async loadSettings() {
@@ -66,26 +56,10 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+class InsertDatetimePluginSettingTab extends PluginSettingTab {
+	plugin: InsertDatetimePlugin;
 
-	onOpen() {
-		let {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		let {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: InsertDatetimePlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -95,17 +69,15 @@ class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
-
 		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
+			.setName('Format')
+			.setDesc(`The format of the datetime that will be inserted. Supported: YYYY, MM, dd, HH, mm, ss. Default: ${DEFAULT_SETTINGS.format}`)
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue('')
+				.setPlaceholder(DEFAULT_SETTINGS.format)
+				.setValue(this.plugin.settings ? this.plugin.settings.format : '')
 				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
+					console.log('format: ' + value);
+					this.plugin.settings.format = value.trim().length > 0 ? value : DEFAULT_SETTINGS.format;
 					await this.plugin.saveSettings();
 				}));
 	}
