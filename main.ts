@@ -16,8 +16,6 @@ export default class InsertDatetimePlugin extends Plugin {
 
 		await this.loadSettings();
 
-		this.addStatusBarItem().setText('Status Bar Text');
-
 		this.addCommand({
 			id: 'insert-datetime',
 			name: 'Insert Datetime',
